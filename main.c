@@ -75,13 +75,13 @@ void humiditySensorInit(){ //takes I2C, use ports 4.6 and 4.7
         UCB1CTLW0 |= ~UCTR; //Put into Rx mode
         UCB1I2CSA = 0x0080; //Slave address = 0x80
 
-        UCB1CTLW1 |= UCASTP_2; //Auto stop when UCB0TBCNT reached. (What does this do?)
+        UCB1CTLW1 |= UCASTP_2; //Auto stop when UCB1TBCNT reached. (What does this do?)
 
-        P1SEL1 &= ~BIT3;
-        P1SEL0 |= BIT3;
+        P4SEL1 &= ~BIT6;
+        P4SEL0 |= BIT6;
 
-        P1SEL1 &= ~BIT2;
-        P1SEL0 |= BIT2;
+        P4SEL1 &= ~BIT7;
+        P4SEL0 |= BIT7;
 
         UCB1CTLW0 &= ~UCSWRST //Take eUSCI_B1 out of SW reset
 
@@ -104,5 +104,9 @@ void wifiInit(){
 __interrupt void Port_2(void){
     P2IFG &= ~BIT3;
     //Reset for the MSP430 goes here
+    //activate watchdog and let it bite
 
+    WDTCTL = WDTPW + WDTCNTCL;
+
+    for(;;);
 }
