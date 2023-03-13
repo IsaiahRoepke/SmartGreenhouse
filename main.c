@@ -16,6 +16,9 @@ void wifiInit(); //Initialize wifi module. How is this done on the MSP430?
 int main(void)
 {
 	WDTCTL = WDTPW | WDTHOLD;	// stop watchdog timer
+	PM5CTL0 &= ~LOCKLPM5; //Disable LPM
+
+	__enable_interrupt();
 	
 	gasSensorInit();
 	humiditySensorInit();
@@ -40,12 +43,49 @@ void resetButtonInit(){
 
 }
 
-void gasSensorInit(){
+void gasSensorInit(){ //takes I2C, use ports 1.2 and 1.3
+    UCB0CTLW0 |= UCSSEL_3; //SMCLK
+    UCB0BRW = 1; //Divides the clk signal. Configure later
+
+    UCB0CTLW0 |= UCMODE_3; //Put into I2C mode
+    UCB0CTLW0 |= UCMST; //Put into master mode. (why?)
+    UCB0CTLW0 |= ~UCTR; //Put into Rx mode
+    UCB0I2CSA = 0x0068; //Slave address = 0x68
+
+    UCB0CTLW1 |= UCASTP_2; //Auto stop when UCB0TBCNT reached. (What does this do?)
+
+    P1SEL1 &= ~BIT3;
+    P1SEL0 |= BIT3;
+
+    P1SEL1 &= ~BIT2;
+    P1SEL0 |= BIT2;
+
+    UCB0CTLW0 &= ~UCSWRST //Take eUSCI_B0 out of SW reset
+
+    UB0IE |= UCTXIE0; //enable interrupts
 
 }
 
-void humiditySensorInit(){
+void humiditySensorInit(){ //takes I2C, use ports 4.6 and 4.7
+    UCB1CTLW0 |= UCSSEL_3; //SMCLK
+        UCB0BRW = 1; //Divides the clk signal. Configure later
 
+        UCB1CTLW0 |= UCMODE_3; //Put into I2C mode
+        UCB1CTLW0 |= UCMST; //Put into master mode. (why?)
+        UCB1CTLW0 |= ~UCTR; //Put into Rx mode
+        UCB1I2CSA = 0x0080; //Slave address = 0x80
+
+        UCB1CTLW1 |= UCASTP_2; //Auto stop when UCB0TBCNT reached. (What does this do?)
+
+        P1SEL1 &= ~BIT3;
+        P1SEL0 |= BIT3;
+
+        P1SEL1 &= ~BIT2;
+        P1SEL0 |= BIT2;
+
+        UCB1CTLW0 &= ~UCSWRST //Take eUSCI_B1 out of SW reset
+
+        UB1IE |= UCTXIE0; //enable interrupts
 }
 
 void tempSensorInit(){
